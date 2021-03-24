@@ -9,8 +9,8 @@
 #define DEBUG_MEASURE
 #define DEBUG_NET
 
-#define WIFI_SSID     "port"
-#define WIFI_PASSWORD "140014001400"
+#define WIFI_SSID     "SSID"
+#define WIFI_PASSWORD "PASSWORD"
 
 #ifndef COOP
 #define CRIT_SECTION_START unsigned long _i_flags = arch_local_irq_save()
@@ -23,6 +23,14 @@
 #define CRIT_SECTION_START
 #define CRIT_SECTION_END
 #endif
+
+static uint8_t log_level = 5;
+
+#define st_debug_print(lvl, _fs)    \
+  do {                              \
+    if (log_level >= lvl)           \
+      Serial.println((_fs));        \
+  } while (0)
 
 /**
  * Disable interrupts
@@ -61,15 +69,16 @@ struct orientation {
     void dump()
     {
         char str[64];
-        snprintf(str, sizeof(str), "%f %f %f %f %f\n",
+        snprintf(str, sizeof(str), "%f %f %f %f %f",
                  x, y, z, roll, pitch);
-        Serial.print(str);
+        st_debug_print(1, str);
     }
 
     template <uint16_t N>
     void dump(char buffer[N])
     {
-        snprintf(buffer, N, "%f %f %f %f %f\n",
+      
+        snprintf(buffer, N, "%f %f %f %f %f",
                  x, y, z, roll, pitch);
     }
 };
@@ -276,7 +285,6 @@ public:
         ssid{ssid},
         password{password}
     {
-        Serial.println("A\n");
     }
 
     void setup()
@@ -287,11 +295,11 @@ public:
        
         while (WiFi.status() != WL_CONNECTED) {
           delay(2000);
-          Serial.println("Connecting...");
+          st_debug_print(2, "Connecting...");
         }
        
-        Serial.print("Connected to WiFi. IP:");
-        Serial.println(WiFi.localIP());
+        st_debug_print(2, "Connected to WiFi. IP:");
+        st_debug_print(2, WiFi.localIP());
        
         wifiServer->begin();      
     }
@@ -317,7 +325,7 @@ public:
         if (!client)
           return false;
 
-        Serial.println("Client connected");
+        st_debug_print(2, "Client connected");
         return true;
     }
 
@@ -328,7 +336,7 @@ public:
         char buffer[64];
 
         if (!get_client()) {
-            Serial.println("No client");
+            st_debug_print(2, "No client");
             delay(300);
             return;
         }        
